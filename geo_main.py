@@ -1509,7 +1509,7 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
                 else:
                     print('Error')
 
-if __name__ == "__main__":
+def call_main():
     import sys
     app = QtWidgets.QApplication(sys.argv)
     icon = iconFromBase64(ICO)
@@ -1538,3 +1538,6 @@ if __name__ == "__main__":
         super(QtGui.QMainWindow, self).closeEvent(*args, **kwargs)
         clean_temp_files()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+	call_main()
