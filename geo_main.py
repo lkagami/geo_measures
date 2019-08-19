@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from Bio.PDB import *
 import math, glob
 import os, sys, subprocess
