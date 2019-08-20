@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -9,6 +12,8 @@ setuptools.setup(
      name='geo_measures',  
 
      version='0.1',
+
+     scripts=['geo_main.py'] ,
 
      author="Luciano Porto Kagami",
 
@@ -24,9 +29,19 @@ setuptools.setup(
 
      packages=setuptools.find_packages(),
 
-     entry_points={'console_scripts': ['geo_measures = geo_main:call_main']},
+     package_dir={'geo_measures':
+                 'geo_measures'},
+
+     include_package_data=True,
+
+     keywords='geo_measures',
+
+     entry_points={'console_scripts': ['geo_measures = geo_measures.geo_measures.geo_main:call_main']},
 
      classifiers=[
+         'Natural Language :: English',
+
+         "Programming Language :: Python :: 3.6",
 
          "Programming Language :: Python :: 3.7",
 
