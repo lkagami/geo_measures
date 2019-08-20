@@ -10,8 +10,6 @@ setuptools.setup(
 
      version='0.1',
 
-     scripts=['geo_main.py'] ,
-
      author="Luciano Porto Kagami",
 
      author_email="lucianopkagami@hotmail.com",
