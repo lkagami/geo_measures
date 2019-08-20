@@ -1,1 +1,1 @@
-from geo_main import call_main
+from geo_measures.geo_main import call_main
