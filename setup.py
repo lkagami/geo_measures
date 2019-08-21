@@ -13,7 +13,7 @@ setuptools.setup(
 
      version='0.1',
 
-     scripts=['geo_main.py'] ,
+     scripts=['geo_measures/scripts/geo_main.py'] ,
 
      author="Luciano Porto Kagami",
 
@@ -27,7 +27,9 @@ setuptools.setup(
 
      url="https://github.com/lkagami/geo_measures",
 
-     packages=setuptools.find_packages(),
+     packages=[
+        'geo_measures',
+    ],
 
      package_dir={'geo_measures':
                  'geo_measures'},
@@ -36,7 +38,7 @@ setuptools.setup(
 
      keywords='geo_measures',
 
-     entry_points={'console_scripts': ['geo_measures = geo_measures.geo_measures.geo_main:call_main']},
+     entry_points={'console_scripts': ['geo_measures = geo_measures.scripts.geo_main:call_main']},
 
      classifiers=[
          'Natural Language :: English',
