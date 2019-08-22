@@ -52,25 +52,6 @@ def countModel(file):
     return k
 def is_multi_pdb_file(fpath):
     return os.path.isfile(fpath) and os.path.getsize(fpath) > 0 and countModel(fpath)
-def check_residues():
-    res_list = []
-    warnings.filterwarnings('ignore')
-    parser = PDBParser(PERMISSIVE=1)
-    structure = parser.get_structure(self.TEMP_PATH+"/complex_1.pdb",  self.TEMP_PATH+"/complex_1.pdb")
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                resnumber = residue.get_id()
-                resname = residue.get_resname()
-                if resname != 'HOH':
-                    res_list.append(int(resnumber[1]))
-    return res_list
-
-
-
-
-
-
 
 _help=''' 
     
@@ -513,7 +494,7 @@ class Ui_MainWindow(object):
         self.pdb_line.setObjectName("pdb_line")
         self.pdb_line.setText('No select file.')
         self.pdb_line.setReadOnly(True)
-        self.bt_process.clicked.connect(self.process)
+        self.bt_process.clicked.connect(self.preprocess)
         self.bt_process.setEnabled(False)
         self.bt_pdb.clicked.connect(self.openpdbfile)
         self.cb_tool.setObjectName("cb_tool")
@@ -777,39 +758,41 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
             for chain in model:
                 chain_list.append(chain.get_id())
         return chain_list
-    
-    def process(self):
-        self.statusbar.showMessage('Please wait...Recognizing the multi-PDB file.')
-        showdialog('Notice','Processing time varies by file size. Please wait until the end of the process.')
-        shutil.copy(self.pdb_file[0], self.TEMP_PATH+'/multipdb.pdb')
+
+    def preprocess(self):
+    	self.statusbar.showMessage('Please wait...Recognizing the multi-PDB file.')
+    	showdialog('Notice','Processing time varies by file size. Please wait until the end of the process.')
+    	shutil.copy(self.pdb_file[0], self.TEMP_PATH+'/multipdb.pdb')
+    	if is_multi_pdb_file(self.TEMP_PATH+'/multipdb.pdb'):
+    		self.postprocess()
+    	else:
+    		showdialog('Error','This file is not a valid Multi-PDB format')
+    		self.statusbar.showMessage('Error. Multi-PDB file not recognized.')
         
-        if os.path.isfile(self.TEMP_PATH+"/complex_1.pdb") == True:
-            pass 
+    def postprocess(self):        
         
-        else:
+        # Get the number of MODELS in the Multi-PDB file
+        self.models = countModel(self.TEMP_PATH+'/multipdb.pdb')
+        model = 1
+        new_text = ""
 
-            # Get the number of MODELS in the Multi-PDB file
-            self.models = countModel(self.TEMP_PATH+'/multipdb.pdb')
-            model = 1
-            new_text = ""
+        # Setting the progress bar
+        self.progressBar.setMaximum(self.models)
+        count = 0
+        for line in open(self.TEMP_PATH+'/multipdb.pdb', "r"):
+            line = line.strip()
+            if line == "ENDMDL":
+                output = open(self.TEMP_PATH+"/complex_" + str(model) + ".pdb", "w")
+                output.write(new_text.strip())
+                output.close()
+                model += 1
+                new_text = ""
+                # Updating progress bar
+                count += 1
+                self.progressBar.setValue(count)
 
-            # Setting the progress bar
-            self.progressBar.setMaximum(self.models)
-            count = 0
-            for line in open(self.TEMP_PATH+'/multipdb.pdb', "r"):
-                line = line.strip()
-                if line == "ENDMDL":
-                    output = open(self.TEMP_PATH+"/complex_" + str(model) + ".pdb", "w")
-                    output.write(new_text.strip())
-                    output.close()
-                    model += 1
-                    new_text = ""
-                    # Updating progress bar
-                    count += 1
-                    self.progressBar.setValue(count)
-
-                else:
-                    new_text += line + "\n"
+            else:
+                new_text += line + "\n"
         res_list = self.list_residues()
         ch_list = self.list_chain()
         for item in res_list:
