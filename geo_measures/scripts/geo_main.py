@@ -296,9 +296,9 @@ class Ui_Converter(object):
         
         # Run the process with a given command
         if gromacs_flag('mdrun'):
-            cmd ="echo 1, 1 |trjconv -f "+ self.xtc_file[0] +" -s "+ self.tpr_file[0] +" -o "+self.fileName+".pdb -pbc nojump -ur compact -center"
+            cmd ="echo 1, 1 |trjconv -f "+ self.xtc_file[0] +" -s "+ self.tpr_file[0] +" -o "+self.fileName0+" -pbc nojump -ur compact -center"
         elif gromacs_flag('gmx'):
-            cmd ="echo 1, 1 |gmx trjconv -f "+ self.xtc_file[0] +" -s "+ self.tpr_file[0] +" -o "+self.fileName+".pdb -pbc nojump -ur compact -center"
+            cmd ="echo 1, 1 |gmx trjconv -f "+ self.xtc_file[0] +" -s "+ self.tpr_file[0] +" -o "+self.fileName0+" -pbc nojump -ur compact -center"
         self.process.start('bash', ['-c', cmd])
         self.process.started.connect(lambda: self.bt_convert.setEnabled(False))
         self.process.finished.connect(lambda: self.bt_convert.setEnabled(True))
@@ -350,9 +350,14 @@ class Ui_Converter(object):
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
         self.fileName, _ = QtWidgets.QFileDialog.getSaveFileName(None,"Save Multi-PDB file",""," Save PDB Files (*.pdb)", options=options)
         if self.fileName:
-            self.pdb_line0.setText(self.fileName)
+        	if self.fileName.endswith('.pdb'):
+        		self.pdb_line0.setText(self.fileName)
+        		self.fileName0 = self.fileName
+        	else:
+        		self.pdb_line0.setText(self.fileName+'.pdb')
+        		self.fileName0 = self.fileName+'.pdb'
         else:
-            self.pdb_line0.setText('No select file.')
+        	self.pdb_line0.setText('No select file.')
     
 
     def ConvertingXTCFileToPDBFile (self):
@@ -616,7 +621,7 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
         self.statusbar.showMessage('Process has canceled.')
 
     def res_hide(self):
-        if self.cb_tool.currentText() == "Dihedral angle" or self.cb_tool.currentText() == "PDF":
+        if self.cb_tool.currentText() == "Dihedral angle":
             self.label_4.setVisible(True)
             self.cb_res1.setVisible(True)
             self.label_5.setVisible(True)
@@ -669,6 +674,24 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
             self.bt_getcsv.setEnabled(False)
             self.bt_plot.setEnabled(False)
             self.statusbar.showMessage('Ready. Select the protein chain, amino acid residues and frame range. After click on Run.')
+
+        elif self.cb_tool.currentText() == "PDF":
+        	self.label_4.setVisible(False)
+        	self.cb_res1.setVisible(False)
+        	self.label_5.setVisible(False)
+        	self.cb_res2.setVisible(False)
+        	self.label_6.setVisible(False)
+        	self.cb_res3.setVisible(False)
+        	self.label_7.setVisible(False)
+        	self.cb_res4.setVisible(False)
+        	try:
+        		shutil.rmtree(self.TEMP_PATH+'/data.csv')
+        	except:
+        		pass
+        	self.bt_run.setEnabled(True)
+        	self.bt_getcsv.setEnabled(False)
+        	self.bt_plot.setEnabled(False)
+        	self.statusbar.showMessage('Ready. Select the protein chain and frame range. After click on Run.')
 
         elif self.cb_tool.currentText() == "RG":
             self.label_4.setVisible(False)
@@ -1025,97 +1048,99 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
                 showdialog('Notice', 'Selected Residues must be differents.')
 
         elif self.cb_tool.currentText() == "PDF":
-            values = [res1[1],res2[1],res3[1],res4[1]]
-            if len(values) == len(set(values)):
-                res_area=str(res1[1])+','+str(res2[1])+','+str(res3[1])
-                res_dihedral=str(res1[1])+','+str(res2[1])+','+str(res3[1])+','+str(res4[1])
-                res_angle=str(res1[1])+','+str(res2[1])+','+str(res3[1])
-                dataAll = [] 
-                dataArea = []
-                dataAngle = []
-                dataDihedral = []
-                dataRMSD = []
-                dataRG = []
-                areaLabels = 'Frame\tDist_AB\tDist_AC\tDist_BC\tArea\n'
-                angleLabels = 'Frame\tAngle\n'
-                dihedralLabels = 'Frame\tDihedral\n'
-                rmsLabels = 'Frame\tRMSD\n'
-                rgLabels = 'Frame\tRG\n'
-                allLabels = 'Frame\tDist_AB\tDist_AC\tDist_BC\tArea\tAngle\tDihedral\n'
-                self.progressBar.setMaximum(final - 1)
-                count = 0
-                    
+	            dataAll = [] 
+	            dataArea = []
+	            dataAngle = []
+	            dataDihedral = []
+	            dataRMSD = []
+	            dataRG = []
+	            dataFEL = []
+	            FELlabels = ''
+	            rmsLabels = ''
+	            rgLabels = ''
+	            Frame = np.array([])
+	            k = 0
+	            self.statusbar.showMessage('Running PDF tool (RMSD) please wait...')
+	            refStruct = parser.get_structure(self.TABLE_PATH+"/complex_1.pdb",  self.TEMP_PATH+"/complex_1.pdb")
+	            refStruct = refStruct[0]
+	            refModelChain = refStruct[chain]
+	            refCaAtoms = []
+	            for refRes in refModelChain:
+	                resnum = refRes.get_id()[1]
+	                refCaAtoms.append(refRes['CA'])
+	            # Setting the progress bar2
+	            self.progressBar.setMaximum(final - 1)
+	            count = 0
+	                            
+	            for frame in range(first ,final):
+	                            
+	                model = parser.get_structure(self.TEMP_PATH+"/complex_" + str(frame) + ".pdb",  self.TEMP_PATH+"/complex_" + str(frame) + ".pdb")
+	                            
+	                # Updating progress bar2
+	                count += 1
+	                self.progressBar.setValue(count)     
+	                                                                
+	                modelStruct = model[0]
+	                ModelChain = modelStruct[chain]
+	                modelCaAtoms = []
+	                for modelRes in ModelChain:
+	                    resnum = modelRes.get_id()[1]
+	                    modelCaAtoms.append(modelRes['CA'])
+	                sup = Superimposer()
+	                sup.set_atoms(refCaAtoms, modelCaAtoms)
+	                rmsd = sup.rms
+	                dataRMSD.append(rmsd)
+	            self.progressBar.setProperty("value", 0)
+	            refStruct = parser.get_structure(self.TABLE_PATH+"/complex_1.pdb",  self.TEMP_PATH+"/complex_1.pdb")
+	            refStruct = refStruct[0]
+	            refModelChain = refStruct[chain]
+	            refCaAtoms = []
+	            for refRes in refModelChain:
+	                resnum = refRes.get_id()[1]
+	                refCaAtoms.append(refRes['CA'])
+	                        
+	            # Setting the progress bar2
+	            self.progressBar.setMaximum(final - 1)
+	            count = 0
+	            self.statusbar.showMessage('Running PDF tool (RG) please wait...')                        
+	            for frame in range(first ,final):
+	                model = parser.get_structure(self.TEMP_PATH+"/complex_" + str(frame) + ".pdb",  self.TEMP_PATH+"/complex_" + str(frame) + ".pdb")
+	                count += 1
+	                self.progressBar.setValue(count)
+	                m = model[0]                
+	                allCA = []
+	                for chain in m:
+	                    for residue in chain:
+	                        for atom in residue:
+	                            if atom.get_id() == 'CA':
+	                                caCoord = atom.get_coord()
+	                                allCA.append(caCoord)
 
-                areaRes = res_area.split(',')
-                dihedralRes = res_dihedral.split(',')
-                angleRes = res_angle.split(',')
+	                CoM = sum(allCA)/(len(allCA))
+	                allCA2 = []
+	                for chain in m:
+	                    for residue in chain:
+	                        for atom in residue:
+	                            if atom.get_id() == 'CA':
+	                                caCoord2 = atom.get_coord() - CoM
+	                                quadCoord = (caCoord2)**2 * 12.04
+	                                allCA2.append(quadCoord)
+	                rg = math.sqrt((np.sum(allCA2))/((len(allCA2))*12.04))
+	                dataRG.append(rg)
+	                k=k+1
+	                Frame = np.append(Frame, np.array([k]), axis=0)
+	            
+	            os.chdir(self.TEMP_PATH)
+	            g_data =  pd.DataFrame()
+	            g_data['Time (ps)'] = Frame
+	            g_data['RMSD (nm)'] = dataRMSD
+	            g_data['RG (nm)'] = dataRG
+	            g_data.to_csv('data.csv')
+	            self.bt_plot.setEnabled(True)
+	            self.bt_getcsv.setEnabled(True)
+	            self.bt_run.setEnabled(False)
+	            self.statusbar.showMessage('Done! Click in Plot or Get CSV File')
 
-                for frame in range(first ,final):
-                        
-                    model = parser.get_structure(self.TEMP_PATH+"complex_" + str(frame) + ".pdb",  self.TEMP_PATH+"/complex_" + str(frame) + ".pdb")
-                    
-                    # Updating progress bar2
-                                            
-                    count += 1
-                    self.progressBar.setValue(count)                 
-                                    # Triangle residues
-                                            
-                                            
-                    atom1 = model[0][chain][int(areaRes[0])]['CA']
-                    atom2 = model[0][chain][int(areaRes[1])]['CA']
-                    atom3 = model[0][chain][int(areaRes[2])]['CA']
-                        
-                    coordAB = model[0][chain][int(areaRes[0])]['CA'].coord - model[0][chain][int(areaRes[1])]['CA'].coord
-                    coordAC = model[0][chain][int(areaRes[0])]['CA'].coord - model[0][chain][int(areaRes[2])]['CA'].coord
-                    coordBC = model[0][chain][int(areaRes[1])]['CA'].coord - model[0][chain][int(areaRes[2])]['CA'].coord
-                            
-                    distAB = np.sqrt(np.sum(coordAB * coordAB))
-                    distAC = np.sqrt(np.sum(coordAC * coordAC))
-                    distBC = np.sqrt(np.sum(coordBC * coordBC))
-                        
-                    sPerimeter = (distAB + distAC + distBC) / 2
-                        
-                    area = (sPerimeter*(sPerimeter-distAB)*(sPerimeter-distAC)*(sPerimeter-distBC)) ** 0.5
-                        
-                    # Dihedral residues
-                            
-                            
-                    atom1 = model[0][chain][int(dihedralRes[0])]['CA']
-                    atom2 = model[0][chain][int(dihedralRes[1])]['CA']
-                    atom3 = model[0][chain][int(dihedralRes[2])]['CA']
-                    atom4 = model[0][chain][int(dihedralRes[3])]['CA']
-                        
-                    vector1 = atom1.get_vector()
-                    vector2 = atom2.get_vector()
-                    vector3 = atom3.get_vector()
-                    vector4 = atom4.get_vector()
-                        
-                    dihedral = calc_dihedral(vector1, vector2, vector3, vector4)
-                    # Angle residues
-                                            
-                    atom1 = model[0][chain][int(angleRes[0])]['CA']
-                    atom2 = model[0][chain][int(angleRes[1])]['CA']
-                    atom3 = model[0][chain][int(angleRes[2])]['CA']
-                        
-                    vector1 = atom1.get_vector()
-                    vector2 = atom2.get_vector()
-                    vector3 = atom3.get_vector()
-                            
-                    angle = calc_angle(vector1, vector2, vector3)
-                            
-                    allLabels += "%i\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n" %(frame, distAB, distAC, distBC, area, math.degrees(angle), math.degrees(dihedral))
-
-                dataAll.append(allLabels)
-                alloutput = open(self.TABLE_PATH, "w")
-                alloutput.writelines(dataAll)   
-                alloutput.close()
-                self.bt_plot.setEnabled(True)
-                self.bt_getcsv.setEnabled(True)
-                self.bt_run.setEnabled(False)
-                self.statusbar.showMessage('Done! Click in Plot or Get CSV File')
-            else:
-                showdialog('Notice', 'Selected Residues must be differents.')  
-   
         elif self.cb_tool.currentText() == "RMSD":
 
                 dataAll = [] 
@@ -1248,7 +1273,7 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
                 rgLabels = ''
                 Frame = np.array([])
                 k = 0
-                
+                self.statusbar.showMessage('Running FEL tool (RMSD) please wait...')
                 refStruct = parser.get_structure(self.TABLE_PATH+"/complex_1.pdb",  self.TEMP_PATH+"/complex_1.pdb")
                 refStruct = refStruct[0]
                 refModelChain = refStruct[chain]
@@ -1290,7 +1315,7 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
                 # Setting the progress bar2
                 self.progressBar.setMaximum(final - 1)
                 count = 0
-                                        
+                self.statusbar.showMessage('Running FEL tool (RG) please wait...')                        
                 for frame in range(first ,final):
                     model = parser.get_structure(self.TEMP_PATH+"/complex_" + str(frame) + ".pdb",  self.TEMP_PATH+"/complex_" + str(frame) + ".pdb")
                     count += 1
@@ -1338,56 +1363,36 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
         if self.cb_tool.currentText() == "Pincer angle":
             option='Angle'
             data=self.TABLE_PATH
-            pdf=None
             df = pd.read_csv(data, delimiter= '\t', header=0, sep='\t')
         elif self.cb_tool.currentText() == "Dihedral angle":
             option='Dihedral'
             data=self.TABLE_PATH
-            pdf=None
             df = pd.read_csv(data, delimiter= '\t', header=0, sep='\t')
         elif self.cb_tool.currentText() == "Triangle area":
             option='Area'
             data=self.TABLE_PATH
-            pdf=None
             df = pd.read_csv(data, delimiter= '\t', header=0, sep='\t')
         elif self.cb_tool.currentText() == "PDF":
-            option='Angle,Dihedral,Area,DistAB,DistAC,DistBC'
-            data=self.TABLE_PATH
-            pdf=None
-            df = pd.read_csv(data, delimiter= '\t', header=0, sep='\t')
+            option='PDF'
+            df = pd.read_csv(self.TEMP_PATH+'/data.csv')
         elif self.cb_tool.currentText() == "RMSD":
             option='RMSD'
             data=self.TABLE_PATH
-            pdf=None
             df = pd.read_csv(data, delimiter= '\t', header=0, sep='\t')
         elif self.cb_tool.currentText() == "RG":
             option = 'RG'
             data=self.TABLE_PATH
-            pdf=None
             df = pd.read_csv(data, delimiter= '\t', header=0, sep='\t')
         elif self.cb_tool.currentText() == "FEL":
             option='FEL'
             data = self.TEMP_PATH+'/data.csv'
-            pdf=None       
-
-        if option == 'Angle,Dihedral,Area,DistAB,DistAC,DistBC':
-
-            # Spliting variable
-            numVar = option.split(',')
-
-            # Deleting quotes
-            numVar[0].strip('"')
-            numVar[1].strip('"')
-            fig, (ax1) = plt.subplots(nrows=1)
             
-            # Color by the Probability Density Function. 
-            # Kernel density estimation is a way to estimate 
-            # the probability density function (PDF) of a random 
-            # variable in a non-parametric way
-            
+        if option == 'PDF':
+
+            fig, (ax1) = plt.subplots(nrows=1)            
             # Setting data
-            x = df[numVar[0]]
-            y = df[numVar[1]]
+            x = df['RMSD (nm)']
+            y = df['RG (nm)']
 
             # Calculate the point density
             xy = np.vstack([x,y])
@@ -1398,10 +1403,10 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
             x, y, z = x[idx], y[idx], z[idx]
 
             # Setting plot type 
-            pdf = ax1.scatter(x, y, c = z, s = 50, edgecolor = '')
+            pdf = ax1.scatter(x, y, c = z, s = 50, edgecolor = '', cmap=plt.cm.jet)
 
             # Plot title
-            ax1.set_title(numVar[0] + ' by ' + numVar[1])
+            ax1.set_title('RMSD by RG')
 
             # Hide right and top spines
             ax1.spines['right'].set_visible(False)
@@ -1410,23 +1415,23 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
             ax1.xaxis.set_ticks_position('bottom')
 
             # Set x and y limits
-            xmin = df[""+numVar[0]+""].min() - 1
-            xmax = df[""+numVar[0]+""].max() + 1
-            ymin = df[""+numVar[1]+""].min() - 1
-            ymax = df[""+numVar[1]+""].max() + 1        
+            xmin = df['RMSD (nm)'].min() - 1
+            xmax = df['RMSD (nm)'].max() + 1
+            ymin = df['RG (nm)'].min() - 1
+            ymax = df['RG (nm)'].max() + 1        
             plt.xlim(xmin, xmax)
             plt.ylim(ymin, ymax)
 
             # Set x and y labels
-            plt.xlabel(numVar[0])
-            plt.ylabel(numVar[1])
+            plt.xlabel('RMSD (nm)')
+            plt.ylabel('RG (nm)')
 
             # Adding the color bar 
             colbar = plt.colorbar(pdf)
             colbar.set_label('Probability Density Function')     
             plt.show()
 
-        elif option != 'Angle,Dihedral,Area,DistAB,DistAC,DistBC' and option != 'FEL':
+        elif option != 'PDF' and option != 'FEL':
 
             fig, (ax1) = plt.subplots(nrows=1)
             ax1.plot(df['Frame'], df[option])
@@ -1478,6 +1483,8 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
         self.bt_pdb.setEnabled(True)
         self.bt_getcsv.setEnabled(False)
         self.bt_plot.setEnabled(False)
+        self.sb_final.setValue(0)
+        self.sb_initial.setValue(0)
         self.statusbar.showMessage('Ready...')
 
 
@@ -1487,13 +1494,26 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
         fileName, _ = QtWidgets.QFileDialog.getSaveFileName(None,"Save CSV file",""," Save CSV Files (*.csv)", options=options)
         if fileName:
-            if self.cb_tool.currentText() != "FEL":
+            if self.cb_tool.currentText() != "FEL" and self.cb_tool.currentText() != "PDF":
                 data=self.TABLE_PATH
                 df = pd.read_csv(data, delimiter= '\t', sep='\t')
-                df.to_csv(fileName+'.csv')
+                if fileName.endswith('.csv'):
+                	df.to_csv(fileName)
+                else:
+                	df.to_csv(fileName+'.csv')
+            elif self.cb_tool.currentText() == "PDF":
+            	df = pd.read_csv(self.TEMP_PATH+'/data.csv')
+
+            	if fileName.endswith('.csv'):
+            		df.to_csv(fileName)
+            	else:
+                	df.to_csv(fileName+'.csv')
             else:
                 if os.path.exists(self.TEMP_PATH+'/data.csv'):
-                    shutil.copy(self.TEMP_PATH+'/data.csv', fileName+'.csv')
+                	if fileName.endswith('.csv'):
+                		shutil.copy(self.TEMP_PATH+'/data.csv', fileName)
+                	else:
+                		shutil.copy(self.TEMP_PATH+'/data.csv', fileName+'.csv')
                 else:
                     print('Error')
 
