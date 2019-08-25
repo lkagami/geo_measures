@@ -460,6 +460,18 @@ class Ui_MainWindow(object):
         self.bt_run = QtWidgets.QPushButton(self.centralwidget)
         self.bt_run.setGeometry(QtCore.QRect(10, 260, 75, 23))
         self.bt_run.setObjectName("bt_run")
+        self.cb_selplot = QtWidgets.QComboBox(self.centralwidget)
+        self.cb_selplot.setGeometry(QtCore.QRect(310, 260, 75, 23))
+        self.cb_selplot.setObjectName("cb_selplot")
+        self.label_10 = QtWidgets.QLabel(self.centralwidget)
+        self.label_10.setGeometry(QtCore.QRect(550, 260, 75, 23))
+        self.label_10.setObjectName("label_10")
+        self.sb_frame = QtWidgets.QSpinBox(self.centralwidget)
+        self.sb_frame.setGeometry(QtCore.QRect(600, 260, 75, 23))
+        self.sb_frame.setObjectName("sb_frame")
+        self.bt_getpdb = QtWidgets.QPushButton(self.centralwidget)
+        self.bt_getpdb.setGeometry(QtCore.QRect(678, 260, 105, 23))
+        self.bt_getpdb.setObjectName("bt_getpdb")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 22))
@@ -511,6 +523,10 @@ class Ui_MainWindow(object):
         self.cb_tool.addItem("RG")
         self.cb_tool.addItem("FEL")
         self.cb_tool.currentIndexChanged.connect(self.res_hide)
+        self.cb_tool.setEnabled(False)
+        self.cb_selplot.addItem("2D")
+        self.cb_selplot.addItem("3D")
+        self.cb_selplot.setVisible(False)
         self.cb_chain.setEnabled(False)
         self.cb_res1.setEnabled(False)
         self.cb_res2.setEnabled(False)
@@ -526,6 +542,9 @@ class Ui_MainWindow(object):
         self.bt_getcsv.setEnabled(False)
         self.bt_run.clicked.connect(self.run_tool)
         self.bt_run.setEnabled(False)
+        self.bt_getpdb.setEnabled(False)
+        self.sb_frame.setEnabled(False)
+        self.bt_getpdb.clicked.connect(self.save_pdb)
         self.actionAbout.triggered.connect(self.showabout)
         self.actionConverter.triggered.connect(self.conVerter)
         self.actionHow_to_use.triggered.connect(self.heLp)
@@ -550,9 +569,11 @@ class Ui_MainWindow(object):
         self.label_7.setText(_translate("MainWindow", "Residue 4:"))
         self.label_8.setText(_translate("MainWindow", "Initial Frame:"))
         self.label_9.setText(_translate("MainWindow", "Final Frame:"))
+        self.label_10.setText(_translate("MainWindow", "Time:"))
         self.bt_plot.setText(_translate("MainWindow", "Plot"))
         self.bt_getcsv.setText(_translate("MainWindow", "Get CSV file"))
         self.bt_run.setText(_translate("MainWindow", "Run"))
+        self.bt_getpdb.setText(_translate("MainWindow", "Get PDB time frame"))
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionAbout.setText(_translate("MainWindow", "About"))
@@ -720,6 +741,7 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
             self.cb_res3.setVisible(False)
             self.label_7.setVisible(False)
             self.cb_res4.setVisible(False)
+            self.cb_selplot.setVisible(True)
             try:
             	shutil.rmtree(self.SHAM_PATH)
             except:
@@ -840,6 +862,9 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
         self.bt_run.setEnabled(True)
         self.bt_process.setEnabled(False)
         self.bt_pdb.setEnabled(False)
+        self.cb_tool.setEnabled(True)
+        self.sb_frame.setMaximum(self.models)
+        self.sb_frame.setMinimum(1)
         self.statusbar.showMessage('Ready. Select the protein chain, amino acid residues and frame range. After click on Run.')
     
     def dataFEL(self):
@@ -876,6 +901,8 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
         self.bt_plot.setEnabled(True)
         self.bt_getcsv.setEnabled(True)
         self.bt_run.setEnabled(False)
+        self.sb_frame.setEnabled(True)
+        self.bt_getpdb.setEnabled(True)
         self.statusbar.showMessage('Done! Click in Plot or Get CSV File')
 
     def run_tool(self):
@@ -938,6 +965,8 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
                 self.bt_plot.setEnabled(True)
                 self.bt_getcsv.setEnabled(True)
                 self.bt_run.setEnabled(False)
+                self.sb_frame.setEnabled(True)
+                self.bt_getpdb.setEnabled(True)
                 self.statusbar.showMessage('Done! Click in Plot or Get CSV File')        
                  
             else:
@@ -988,6 +1017,8 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
                 self.bt_plot.setEnabled(True)
                 self.bt_getcsv.setEnabled(True)
                 self.bt_run.setEnabled(False)
+                self.sb_frame.setEnabled(True)
+                self.bt_getpdb.setEnabled(True)
                 self.statusbar.showMessage('Done! Click in Plot or Get CSV File')                    
             else:
                 showdialog('Notice', 'Selected Residues must be differents.')
@@ -1043,6 +1074,8 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
                 self.bt_plot.setEnabled(True)
                 self.bt_getcsv.setEnabled(True)
                 self.bt_run.setEnabled(False)
+                self.sb_frame.setEnabled(True)
+                self.bt_getpdb.setEnabled(True)
                 self.statusbar.showMessage('Done! Click in Plot or Get CSV File')
             else:
                 showdialog('Notice', 'Selected Residues must be differents.')
@@ -1139,6 +1172,8 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
 	            self.bt_plot.setEnabled(True)
 	            self.bt_getcsv.setEnabled(True)
 	            self.bt_run.setEnabled(False)
+	            self.sb_frame.setEnabled(True)
+	            self.bt_getpdb.setEnabled(True)
 	            self.statusbar.showMessage('Done! Click in Plot or Get CSV File')
 
         elif self.cb_tool.currentText() == "RMSD":
@@ -1193,6 +1228,8 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
                 self.bt_plot.setEnabled(True)
                 self.bt_getcsv.setEnabled(True)
                 self.bt_run.setEnabled(False)
+                self.sb_frame.setEnabled(True)
+                self.bt_getpdb.setEnabled(True)
                 self.statusbar.showMessage('Done! Click in Plot or Get CSV File')
                          
         elif self.cb_tool.currentText() == "RG":
@@ -1256,6 +1293,8 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
                 self.bt_plot.setEnabled(True)
                 self.bt_getcsv.setEnabled(True)
                 self.bt_run.setEnabled(False)
+                self.sb_frame.setEnabled(True)
+                self.bt_getpdb.setEnabled(True)
                 self.statusbar.showMessage('Done! Click in Plot or Get CSV File')
 
         elif self.cb_tool.currentText() == "FEL":
@@ -1448,24 +1487,39 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
             plt.show()
         
         elif option == 'FEL':
-            df = pd.read_csv(data)
-            fig = plt.figure(figsize=(15,10))
-            fig.suptitle('Free Energy Landscape', fontsize=20)
-            ax = fig.gca(projection='3d')
-            ax.set_xlabel('RMSD (nm)', fontsize=15)
-            ax.set_ylabel('RG (nm)', fontsize=15)
-            ax.set_zlabel('Gibbs Free Energy (kj/mol)', fontsize=15)
-            ax = fig.gca(projection='3d')
-            ax.plot_trisurf(df['RMSD (nm)'], df['RG (nm)'], df['Gb_E (kj/mol)'], cmap=plt.cm.jet, linewidth=0, antialiased=False)
-                
-            # to Add a color bar which maps values to colors.
-            surf=ax.plot_trisurf(df['RMSD (nm)'], df['RG (nm)'], df['Gb_E (kj/mol)'], cmap=plt.cm.jet, linewidth=0, antialiased=False)
-            fig.colorbar( surf, shrink=0.5, aspect=5)
-            ax.tricontourf(df['RMSD (nm)'], df['RG (nm)'], df['Gb_E (kj/mol)'], zdir='z', offset=-1, cmap=plt.cm.jet)
-                
-            # Rotate it
-            ax.view_init(30, 15)
-            plt.show()
+        	if self.cb_selplot.currentText() == "3D":
+	            df = pd.read_csv(data)
+	            fig = plt.figure(figsize=(15,10))
+	            fig.suptitle('Free Energy Landscape', fontsize=20)
+	            ax = fig.gca(projection='3d')
+	            ax.set_xlabel('RMSD (nm)', fontsize=15)
+	            ax.set_ylabel('RG (nm)', fontsize=15)
+	            ax.set_zlabel('Gibbs Free Energy (kj/mol)', fontsize=15)
+	            ax = fig.gca(projection='3d')
+	            ax.plot_trisurf(df['RMSD (nm)'], df['RG (nm)'], df['Gb_E (kj/mol)'], cmap=plt.cm.jet, linewidth=0, antialiased=False)
+	                
+	            # to Add a color bar which maps values to colors.
+	            surf=ax.plot_trisurf(df['RMSD (nm)'], df['RG (nm)'], df['Gb_E (kj/mol)'], cmap=plt.cm.jet, linewidth=0, antialiased=False)
+	            colbar = fig.colorbar( surf, shrink=0.5, aspect=5)
+	            colbar.set_label('Gibbs Free Energy (kj/mol)')
+	            ax.tricontourf(df['RMSD (nm)'], df['RG (nm)'], df['Gb_E (kj/mol)'], zdir='z', offset=-1, cmap=plt.cm.jet)
+	                
+	            # Rotate it
+	            ax.view_init(30, 15)
+	            plt.show()
+	        else:
+	        	z = df['Gb_E (kj/mol)']
+	        	X = df['RMSD (nm)']
+	        	Y = df['RG (nm)']
+	        	fig, ax = plt.subplots()
+	        	fig.suptitle('Free Energy Landscape', fontsize=20)
+	        	scat = ax.scatter(X,Y, c=z, cmap=plt.cm.jet, alpha=0.3)
+	        	ax.set_xlabel('RMSD (nm)', fontsize=15)
+	        	ax.set_ylabel('RG (nm)', fontsize=15)
+	        	colbar = fig.colorbar(scat, shrink=0.5, aspect=5)
+	        	colbar.set_label('Gibbs Free Energy (kj/mol)')
+	        	plt.show()
+
     def clean_temp_files(self):
         shutil.rmtree(self.TEMP_PATH)
         
@@ -1514,8 +1568,22 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
                 		shutil.copy(self.TEMP_PATH+'/data.csv', fileName)
                 	else:
                 		shutil.copy(self.TEMP_PATH+'/data.csv', fileName+'.csv')
-                else:
-                    print('Error')
+        else:
+            print('Error')
+
+    def save_pdb(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(None,"Save PDB file",""," Save PDB Files (*.pdb)", options=options)
+        frame_time = self.sb_frame.value()
+        if fileName:
+        	if fileName.endswith('.pdb'):
+        		shutil.copy(self.TEMP_PATH+"/complex_" + str(frame_time) + ".pdb", fileName)
+        	else:
+        		shutil.copy(self.TEMP_PATH+"/complex_" + str(frame_time) + ".pdb", fileName+'.pdb')
+        else:
+            print('Error')        	
+            
 
 def call_main():
     import sys
