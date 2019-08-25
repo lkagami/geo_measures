@@ -11,7 +11,7 @@ setuptools.setup(
 
      name='geo_measures',  
 
-     version='0.1',
+     version='0.2',
 
      scripts=['geo_measures/scripts/geo_main.py'] ,
 
