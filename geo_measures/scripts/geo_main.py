@@ -461,16 +461,16 @@ class Ui_MainWindow(object):
         self.bt_run.setGeometry(QtCore.QRect(10, 260, 75, 23))
         self.bt_run.setObjectName("bt_run")
         self.cb_selplot = QtWidgets.QComboBox(self.centralwidget)
-        self.cb_selplot.setGeometry(QtCore.QRect(310, 260, 75, 23))
+        self.cb_selplot.setGeometry(QtCore.QRect(310, 260, 50, 23))
         self.cb_selplot.setObjectName("cb_selplot")
         self.label_10 = QtWidgets.QLabel(self.centralwidget)
-        self.label_10.setGeometry(QtCore.QRect(550, 260, 75, 23))
+        self.label_10.setGeometry(QtCore.QRect(500, 260, 75, 23))
         self.label_10.setObjectName("label_10")
         self.sb_frame = QtWidgets.QSpinBox(self.centralwidget)
-        self.sb_frame.setGeometry(QtCore.QRect(600, 260, 75, 23))
+        self.sb_frame.setGeometry(QtCore.QRect(550, 260, 75, 23))
         self.sb_frame.setObjectName("sb_frame")
         self.bt_getpdb = QtWidgets.QPushButton(self.centralwidget)
-        self.bt_getpdb.setGeometry(QtCore.QRect(678, 260, 105, 23))
+        self.bt_getpdb.setGeometry(QtCore.QRect(628, 260, 155, 23))
         self.bt_getpdb.setObjectName("bt_getpdb")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -569,7 +569,7 @@ class Ui_MainWindow(object):
         self.label_7.setText(_translate("MainWindow", "Residue 4:"))
         self.label_8.setText(_translate("MainWindow", "Initial Frame:"))
         self.label_9.setText(_translate("MainWindow", "Final Frame:"))
-        self.label_10.setText(_translate("MainWindow", "Time:"))
+        self.label_10.setText(_translate("MainWindow", "Frame (10 ps):"))
         self.bt_plot.setText(_translate("MainWindow", "Plot"))
         self.bt_getcsv.setText(_translate("MainWindow", "Get CSV file"))
         self.bt_run.setText(_translate("MainWindow", "Run"))
@@ -1479,7 +1479,7 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
             ax1.spines['top'].set_visible(False)
             ax1.yaxis.set_ticks_position('left')
             ax1.xaxis.set_ticks_position('bottom')
-            plt.xlabel('Time (ps)')
+            plt.xlabel('Frame (10 ps)')
             xmin1 = df['Frame'].min() - 1
             xmax1 = df['Frame'].max() + 1
             plt.xlim(xmin1, xmax1)
@@ -1508,6 +1508,7 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
 	            ax.view_init(30, 15)
 	            plt.show()
 	        else:
+	        	df = pd.read_csv(data)
 	        	z = df['Gb_E (kj/mol)']
 	        	X = df['RMSD (nm)']
 	        	Y = df['RG (nm)']
