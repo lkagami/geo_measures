@@ -464,7 +464,7 @@ class Ui_MainWindow(object):
         self.cb_selplot.setGeometry(QtCore.QRect(310, 260, 50, 23))
         self.cb_selplot.setObjectName("cb_selplot")
         self.label_10 = QtWidgets.QLabel(self.centralwidget)
-        self.label_10.setGeometry(QtCore.QRect(500, 260, 75, 23))
+        self.label_10.setGeometry(QtCore.QRect(450, 260, 100, 23))
         self.label_10.setObjectName("label_10")
         self.sb_frame = QtWidgets.QSpinBox(self.centralwidget)
         self.sb_frame.setGeometry(QtCore.QRect(550, 260, 75, 23))
@@ -1514,16 +1514,21 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
 	        	Y = df['RG (nm)']
 	        	fig, ax = plt.subplots()
 	        	fig.suptitle('Free Energy Landscape', fontsize=20)
-	        	scat = ax.scatter(X,Y, c=z, cmap=plt.cm.jet, alpha=0.3)
+	        	trico = ax.tricontourf(df['RMSD (nm)'], df['RG (nm)'], df['Gb_E (kj/mol)'], zdir='z', offset=-1, cmap=plt.cm.jet)
 	        	ax.set_xlabel('RMSD (nm)', fontsize=15)
 	        	ax.set_ylabel('RG (nm)', fontsize=15)
-	        	colbar = fig.colorbar(scat, shrink=0.5, aspect=5)
+	        	colbar = fig.colorbar(trico, shrink=0.5, aspect=5)
 	        	colbar.set_label('Gibbs Free Energy (kj/mol)')
 	        	plt.show()
 
     def clean_temp_files(self):
-        shutil.rmtree(self.TEMP_PATH)
-        
+    	try:
+    		shutil.rmtree(self.TEMP_PATH)
+    	except:
+    		pass
+
+
+
     def new(self):
         
         showdialog('Notice', 'Please wait .. Deleting the temporary folder may take a few minutes.')
@@ -1584,7 +1589,12 @@ Luciano Porto Kagami, Gustavo Machado das Neves, Luís Fernando Saraiva Macedo T
         		shutil.copy(self.TEMP_PATH+"/complex_" + str(frame_time) + ".pdb", fileName+'.pdb')
         else:
             print('Error')        	
-            
+    
+    def closeEvent(self):
+        print('Bye')
+        self.clean_temp_files
+        sys.exit(0)
+        
 
 def call_main():
     import sys
@@ -1610,10 +1620,8 @@ def call_main():
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
+    app.aboutToQuit.connect(ui.closeEvent)
     MainWindow.show()
-    def closeEvent(self, *args, **kwargs):
-        super(QtGui.QMainWindow, self).closeEvent(*args, **kwargs)
-        clean_temp_files()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
