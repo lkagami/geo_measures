@@ -1,3 +1,0 @@
-[console_scripts]
-geo_measures = geo_measures.scripts.geo_main:call_main
-
