@@ -11,7 +11,7 @@ setuptools.setup(
 
      name='geo_measures',  
 
-     version='0.4',
+     version='0.6',
 
      scripts=['geo_measures/scripts/geo_main.py'] ,
 
@@ -52,7 +52,7 @@ setuptools.setup(
          "Operating System :: OS Independent",
 
      ],
-    install_requires=['biopandas==0.2.5','biopython==1.74','numpy==1.17.0','pandas==0.25.0','Pillow==6.1.0','PyQt5==5.13.0','PyQt5-sip==4.19.18','scipy==1.3.1',
+    install_requires=['biopandas==0.2.5','biopython==1.74','numpy==1.17.0','pandas==0.25.0','Pillow==6.1.0','PyQt5==5.13.0','PyQt5-sip==4.19.18','scipy==1.3.1','ProDy==1.10.10',
       ],
     zip_safe=False
 
