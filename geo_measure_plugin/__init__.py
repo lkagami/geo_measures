@@ -360,11 +360,11 @@ def make_dialog():
         import matplotlib.pyplot as plt
         from scipy.stats import gaussian_kde
         from mpl_toolkits.mplot3d import Axes3D        
-        import mdtraj
+        import pytraj
         from sklearn.decomposition import PCA
         
     except:
-    	showdialog('Note', 'Please install python library requeriments: pandas, matplotlib, scipy, mdtraj, sklearn')
+    	showdialog('Note', 'Please install python library requeriments: pandas, matplotlib, scipy, pyraj, sklearn')
     	try:
     		os.system('pip3 install pandas')
     	except:
@@ -378,7 +378,7 @@ def make_dialog():
     	except:
     		pass
     	try:
-    		os.system('pip3 install mdtraj')
+    		os.system('pip3 install pytraj')
     	except:
     		pass
     	try:
@@ -541,8 +541,8 @@ def make_dialog():
             dataFrame = []
             count = 0
             form.progressBar.setMaximum(cmd.count_states('md'))
-            t = mdtraj.load(TRAJ_PATH)
-            rmsd = mdtraj.rmsd(t, t, 1)
+            t = pytraj.load(TRAJ_PATH)
+            rmsd = pytraj.rmsd(t,ref=t[0])
             for frame in range(cmd.count_states('md')):                
                 dataRMSD.append(rmsd[frame])
                 dataFrame.append(frame)
@@ -565,8 +565,8 @@ def make_dialog():
             dataFrame = []
             count = 0
             form.progressBar.setMaximum(cmd.count_states('md'))
-            t = mdtraj.load(TRAJ_PATH)
-            rg = mdtraj.compute_rg(t)
+            t = pytraj.load(TRAJ_PATH)
+            rg = pytraj.radgyr(t)
             for frame in range(cmd.count_states('md')):
                 dataRG.append(rg[frame])
                 dataFrame.append(frame)
@@ -590,9 +590,9 @@ def make_dialog():
             dataFrame =[]
             dataRMSD = []
             dataRG = []
-            t = mdtraj.load(TRAJ_PATH)
-            rg = mdtraj.compute_rg(t)
-            rmsd = mdtraj.rmsd(t, t, 1)
+            t = pytraj.load(TRAJ_PATH)
+            rg = pytraj.radgyr(t)
+            rmsd = pytraj.rmsd(t,ref=t[0])
             for frame in range(cmd.count_states('md')):
                 dataFrame.append(frame)
                 dataRMSD.append(rmsd[frame])
@@ -634,10 +634,10 @@ def make_dialog():
             dataPC9_exp =[]
             dataPC10_exp =[]
             dataFrame=[]
-            traj = mdtraj.load(TRAJ_PATH)
+            traj = pytraj.load(TRAJ_PATH)
             pca1 = PCA(n_components=10)
-            traj.superpose(traj, 0)
-            reduced_cartesian = pca1.fit_transform(traj.xyz.reshape(traj.n_frames, traj.n_atoms * 3))
+            traj2=pytraj.align(traj)
+            reduced_cartesian = pca1.fit_transform(traj2.xyz.reshape(traj2.n_frames, traj2.n_atoms * 3))
             count = 0
             form.progressBar.setMaximum(cmd.count_states('md'))
             for frame in range(cmd.count_states('md')):
@@ -683,10 +683,10 @@ def make_dialog():
             pc = [0,1,2,3,4,5,6,7,8,9]
             PC = []
             stored.dataPC_exp = []            
-            traj = mdtraj.load(TRAJ_PATH)
+            traj = pytraj.load(TRAJ_PATH)
             pca1 = PCA(n_components=10)
-            traj.superpose(traj, 0)
-            reduced_cartesian = pca1.fit_transform(traj.xyz.reshape(traj.n_frames, traj.n_atoms * 3))
+            traj2=pytraj.align(traj)
+            reduced_cartesian = pca1.fit_transform(traj2.xyz.reshape(traj2.n_frames, traj2.n_atoms * 3))
             count = 0
             form.progressBar.setMaximum(len(pc))
             for item in pc:
@@ -736,12 +736,13 @@ def make_dialog():
             form.plain_status.setPlainText('Running RMSF, please wait.')
             rmsfData = []
             res = []
-            traj = mdtraj.load(TRAJ_PATH)
-            rmsf = mdtraj.rmsf(traj, traj, 0)
+            traj = pytraj.load(TRAJ_PATH)
+            pytraj.superpose(traj, ref=0)
+            rmsf = pytraj.rmsf(traj, '@CA')
             count = 0
             form.progressBar.setMaximum(len(stored.res))
             for item in rmsf:
-                rmsfData.append(item)
+                rmsfData.append(item[1])
                 count += 1
                 form.progressBar.setValue(count)
             for item in stored.res:
@@ -764,12 +765,12 @@ def make_dialog():
             res = []
             DSSP_PATH = TEMP_PATH+"/dssp.pdb"
             cmd.remove('resn hoh')
-            cmd.save(DSSP_PATH, 'name c+o+n+ca', state=0)
-            traj = mdtraj.load(DSSP_PATH)
-            dssp = mdtraj.compute_dssp(traj, simplified=True)
+            cmd.save(DSSP_PATH, selection='resn ALA+CYS+ASP+GLU+PHE+GLY+HIS+ILE+LYS+LEU+MET+ASN+PRO+GLN+ARG+SER+THR+VAL+TRP+TYR', state=0)
+            traj = pytraj.load(DSSP_PATH)
+            residues, ss, _ = pytraj.dssp(traj, simplified=True)
             count = 0
             form.progressBar.setMaximum(cmd.count_states('md'))
-            for item in dssp:
+            for item in ss:
                 dsspData.append(item)
                 count += 1
                 form.progressBar.setValue(count)
@@ -871,9 +872,9 @@ def make_dialog():
                 dataFrame =[]
                 dataRMSD = []
                 dataRG = []
-                t = mdtraj.load(TRAJ_PATH)
-                rg = mdtraj.compute_rg(t)
-                rmsd = mdtraj.rmsd(t, t, 1)
+                t = pytraj.load(TRAJ_PATH)
+                rg = pytraj.radgyr(t)
+                rmsd = pytraj.rmsd(t,ref=t[0])
                 for frame in range(cmd.count_states('md')):
                     dataFrame.append(frame)
                     dataRMSD.append(rmsd[frame])
