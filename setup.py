@@ -52,7 +52,7 @@ setuptools.setup(
          "Operating System :: OS Independent",
 
      ],
-    install_requires=['biopandas==0.2.5','biopython==1.74','numpy==1.17.0','pandas==0.25.0','Pillow==9.0.1','PyQt5==5.13.0','PyQt5-sip==4.19.18','scipy==1.3.1','ProDy==1.10.10',
+    install_requires=['biopandas==0.2.5','biopython==1.74','numpy==1.21.0','pandas==0.25.0','Pillow==9.0.1','PyQt5==5.13.0','PyQt5-sip==4.19.18','scipy==1.3.1','ProDy==1.10.10',
       ],
     zip_safe=False
 
