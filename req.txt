@@ -1,6 +1,6 @@
 biopandas==0.2.5
 biopython==1.74
-numpy==1.17.0
+numpy==1.22.0
 pandas==0.25.0
 Pillow>=7.1.0
 PyQt5==5.13.0
